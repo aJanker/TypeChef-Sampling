@@ -612,7 +612,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         val ts = new CTypeSystemFrontend(ast, fm, opt) with CTypeCache with CDeclUse
         ts.checkASTSilent
         sw.start("initsa")
-        val sa = new CIntraAnalysisFrontend(ast, ts.asInstanceOf[CTypeSystemFrontend with CTypeCache with CDeclUse], fm)
+        val sa = new CIntraAnalysisFrontendF(ast, ts.asInstanceOf[CTypeSystemFrontend with CTypeCache with CDeclUse], fm)
 
         val outFilePrefix: String = fileID.substring(0, fileID.length - 2)
 
@@ -674,12 +674,13 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         analyzeTasks(typecheckingTasks, ast, fm, opt, thisFilePath, startLog = configGenLog)
     }
 
-    def parseFile(stream: InputStream, file: String, dir: String): TranslationUnit = {
+    // unused function -> to remove?
+    /*def parseFile(stream: InputStream, file: String, dir: String): TranslationUnit = {
         import scala.collection.JavaConversions._
         val ast: AST = new ParserMain(new CParser).parserMain(
             CLexerAdapter.prepareTokens(new LexerFrontend().parseStream(stream, file, Collections.singletonList(dir), null)),SilentParserOptions)
         ast.asInstanceOf[TranslationUnit]
-    }
+    } */
 
     private def liveness(tunit: AST, udm: UseDeclMap, env: ASTEnv, fm: FeatureModel = FeatureExprFactory.empty) {
         val fdefs = filterAllASTElems[FunctionDef](tunit)
@@ -689,8 +690,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     private def intraDataflowAnalysis(f: FunctionDef, udm: UseDeclMap, env: ASTEnv, fm: FeatureModel) {
         if (f.stmt.innerStatements.isEmpty) return
 
-        val pp = getAllPred(f, FeatureExprFactory.empty, env)
-        val li = new Liveness(f, env, udm, FeatureExprFactory.empty)
+        val pp = getAllPred(f, env)
+        val li = new Liveness(env, udm, FeatureExprFactory.empty, f)
 
         val nss = pp.map(_._1).filterNot(x => x.isInstanceOf[FunctionDef])
 
