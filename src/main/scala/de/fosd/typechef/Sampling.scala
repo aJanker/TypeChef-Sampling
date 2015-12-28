@@ -46,41 +46,41 @@ object Sampling extends EnforceTreeHelper {
         val errorXML = new ErrorXML(opt.getErrorXMLFile)
         opt.setRenderParserError(errorXML.renderParserError)
 
-        val fm = opt.getLexerFeatureModel.and(opt.getLocalFeatureModel).and(opt.getFilePresenceCondition)
-        opt.setFeatureModel(fm)
-        if (!opt.getFilePresenceCondition.isSatisfiable(fm)) {
+        val smallFM = opt.getSmallFeatureModel.and(opt.getLocalFeatureModel).and(opt.getFilePresenceCondition)
+        opt.setSmallFeatureModel(smallFM)
+        val fullFM = opt.getFullFeatureModel.and(opt.getLocalFeatureModel).and(opt.getFilePresenceCondition)
+        opt.setFullFeatureModel(fullFM) // should probably be fixed in how options are read
+        if (!opt.getFilePresenceCondition.isSatisfiable(fullFM)) {
             println("file has contradictory presence condition. existing.")
             return
         }
 
         var ast: TranslationUnit = null
-        if (opt.reuseAST && opt.parse && new File(opt.getSerializedASTFilename).exists()) {
-            println("loading AST.")
+        if (opt.reuseAST && opt.parse && new File(opt.getSerializedTUnitFilename).exists()) {
+            println("#loading AST.")
             try {
-                ast = Frontend.loadSerializedAST(opt.getSerializedASTFilename)
+                ast = Frontend.loadSerializedAST(opt.getSerializedTUnitFilename)
 
             } catch {
                 case e: Throwable => println(e.getMessage); ast=null
             }
             if (ast == null)
-                println("... failed reading AST\n")
+                println("#... failed reading AST\n")
         } else {
             new lexer.LexerFrontend().run(opt, opt.parse)
             val in = lex(opt)
-            val parserMain = new ParserMain(new CParser(fm))
-            ast = parserMain.parserMain(in, opt).asInstanceOf[TranslationUnit]
+            val parserMain = new ParserMain(new CParser(smallFM))
+            ast = parserMain.parserMain(in, opt, fullFM)
 
             if (ast != null && opt.serializeAST) {
-                Frontend.serializeAST(ast, opt.getSerializedASTFilename)
+                Frontend.serializeAST(ast, opt.getSerializedTUnitFilename)
             }
         }
 
         ast = prepareAST[TranslationUnit](ast)
 
         if (ast != null) {
-            val fm_ts = opt.getTypeSystemFeatureModel.and(opt.getLocalFeatureModel).and(opt.getFilePresenceCondition)
-            val treeast = prepareAST[TranslationUnit](ast.asInstanceOf[TranslationUnit])
-            FamilyBasedVsSampleBased.checkErrorsAgainstSamplingConfigs(fm_ts, fm_ts, treeast, opt, "")
+            FamilyBasedVsSampleBased.checkErrorsAgainstSamplingConfigs(fullFM, fullFM, ast, opt, "")
         }
     }
 
