@@ -1,5 +1,15 @@
 import AssemblyKeys._
 
+name := "Typechef-Sampling"
+
+version := "1.0"
+
+organization := "de.fosd.typechef"
+
+scalaVersion := "2.11.4"
+
+libraryDependencies += "de.fosd.typechef" % "frontend_2.11" % "0.4.0"
+
 libraryDependencies += "gnu.getopt" % "java-getopt" % "1.0.13"
 
 mainClass in Runtime := Some("de.fosd.typechef.Sampling")
