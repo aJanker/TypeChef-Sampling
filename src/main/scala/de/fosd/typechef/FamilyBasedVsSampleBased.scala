@@ -659,7 +659,10 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         fw.write(reslist.map(_._1).mkString(";") + "\n")
         fw.write(reslist.map(_._2).mkString(";") + "\n")
 
-        println(sw.toString)
+        val writer = new FileWriter(new File(opt.getStopWatchFilename))
+        writer.write(sw.toString)
+        writer.close()
+        println(sw)
 
         fw.close()
     }
