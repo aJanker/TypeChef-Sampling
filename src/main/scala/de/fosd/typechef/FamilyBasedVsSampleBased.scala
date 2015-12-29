@@ -200,7 +200,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             msg = "omitting fileconfig generation, because a serialized version was loaded"
         } else {
             val configFile = if (caseStudy.equals("linux"))
-                opt.getRootFolder + "allyes.config"
+                opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/allyes.config"
             else if (caseStudy.equals("busybox"))
                 opt.getRootFolder + "BusyboxBigConfig.config"
             else if (caseStudy.equals("openssl"))
