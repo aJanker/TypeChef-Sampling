@@ -1,24 +1,21 @@
 package de.fosd.typechef
 
-import de.fosd.typechef.conditional.{One, Choice, Opt}
+import java.io._
+import java.util.regex.Pattern
+
+import de.fosd.typechef.conditional.{Choice, One, Opt}
 import de.fosd.typechef.crewrite._
 import de.fosd.typechef.featureexpr._
-
-import bdd.{BDDFeatureModel, SatSolver}
+import de.fosd.typechef.featureexpr.bdd.{BDDFeatureModel, SatSolver}
+import de.fosd.typechef.featureexpr.sat.{SATFeatureExprFactory, SATFeatureModel}
 import de.fosd.typechef.parser.c._
 import de.fosd.typechef.typesystem._
-import scala.collection.immutable.HashMap
+
 import scala.Predef._
-import scala._
-import collection.mutable.ListBuffer
-import io.Source
-import java.util.regex.Pattern
-import java.lang.SuppressWarnings
-import java.io._
-import util.Random
-import java.util.Collections
-import de.fosd.typechef.featureexpr.sat.{SATFeatureExprFactory, SATFeatureModel}
-import de.fosd.typechef.lexer.LexerFrontend
+import scala.collection.immutable.HashMap
+import scala.collection.mutable.ListBuffer
+import scala.io.Source
+import scala.util.Random
 
 /**
  *
@@ -203,7 +200,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             msg = "omitting fileconfig generation, because a serialized version was loaded"
         } else {
             val configFile = if (caseStudy.equals("linux"))
-                opt.getRootFolder + "Linux_allyes_modified.config"
+                opt.getRootFolder + "allyes.config"
             else if (caseStudy.equals("busybox"))
                 opt.getRootFolder + "BusyboxBigConfig.config"
             else if (caseStudy.equals("openssl"))
@@ -542,8 +539,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         var caseStudy = ""
         var thisFilePath: String = ""
         val fileAbsPath = new File(new File(".").getAbsolutePath, opt.getFile).toString
-        if (fileAbsPath.contains("linux-2.6.33.3")) {
-            thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("linux-2.6.33.3"))
+        if (fileAbsPath.contains("linux26333")) {
+            thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("linux26333"))
             caseStudy = "linux"
         } else if (fileAbsPath.contains("busybox-1.18.5")) {
             thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("busybox-1.18.5"))
