@@ -235,7 +235,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             var featureprefix = ""
             if (caseStudy == "linux") {
                 productsFile = new File(opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/linux_pairwise_configs.csv")
-                dimacsFM = new File(opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/2.6.33.3-2var.dimacs")
+                dimacsFM = new File(opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/extramodels/2.6.33.3-2var.dimacs")
                 featureprefix = "CONFIG_"
             } else if (caseStudy == "busybox") {
                 productsFile = new File(opt.getRootFolder + "TypeChef-BusyboxAnalysis/busybox_pairwise_configs.csv")
