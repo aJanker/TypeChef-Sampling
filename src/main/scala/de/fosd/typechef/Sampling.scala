@@ -1,11 +1,10 @@
 package de.fosd.typechef
 
-import de.fosd.typechef.parser.c._
-import parser.TokenReader
-import de.fosd.typechef.parser.c.TranslationUnit
-import de.fosd.typechef.parser.c.CTypeContext
-import de.fosd.typechef.options.OptionException
 import java.io.File
+
+import de.fosd.typechef.options.OptionException
+import de.fosd.typechef.parser.TokenReader
+import de.fosd.typechef.parser.c.{CTypeContext, TranslationUnit, _}
 
 object Sampling extends EnforceTreeHelper {
     def main(args: Array[String]) {
@@ -67,14 +66,16 @@ object Sampling extends EnforceTreeHelper {
             if (ast == null)
                 println("#... failed reading AST\n")
         } else {
-            new lexer.LexerFrontend().run(opt, opt.parse)
+            println("#... failed parsing AST\n")
+            return
+            /*new lexer.LexerFrontend().run(opt, opt.parse)
             val in = lex(opt)
             val parserMain = new ParserMain(new CParser(smallFM))
             ast = parserMain.parserMain(in, opt, fullFM)
 
             if (ast != null && opt.serializeAST) {
                 Frontend.serializeAST(ast, opt.getSerializedTUnitFilename)
-            }
+            }*/
         }
 
         ast = prepareAST[TranslationUnit](ast)
