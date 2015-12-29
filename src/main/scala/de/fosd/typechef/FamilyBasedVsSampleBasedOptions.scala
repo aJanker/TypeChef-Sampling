@@ -1,10 +1,10 @@
 package de.fosd.typechef
 
 import java.util
-import gnu.getopt.{Getopt, LongOpt}
-import java.lang.String
-import de.fosd.typechef.options.{FrontendOptionsWithConfigFiles, Options}
+
 import de.fosd.typechef.options.Options.OptionGroup
+import de.fosd.typechef.options.{FrontendOptionsWithConfigFiles, Options}
+import gnu.getopt.{Getopt, LongOpt}
 
 class FamilyBasedVsSampleBasedOptions extends FrontendOptionsWithConfigFiles {
     private[typechef] var singleconf: Boolean = false
@@ -56,6 +56,10 @@ class FamilyBasedVsSampleBasedOptions extends FrontendOptionsWithConfigFiles {
 
     def getRootFolder: String = {
         rootfolder
+    }
+
+    def getErrReportFileName: String = {
+        getOutputStem + ".errreport"
     }
 
 }

@@ -631,7 +631,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         sa.deadStore()
         sw.start("done")
 
-        val file: File = new File(outFilePrefix + ".errreport")
+        val file: File = new File(opt.getErrReportFileName)
         file.getParentFile.mkdirs()
         val fw: FileWriter = new FileWriter(file)
         fw.write("File : " + fileID + "\n")
