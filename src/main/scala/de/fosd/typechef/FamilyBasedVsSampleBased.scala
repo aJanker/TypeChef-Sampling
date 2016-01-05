@@ -202,7 +202,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             val configFile = if (caseStudy.equals("linux"))
                 opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/allyes.config"
             else if (caseStudy.equals("busybox"))
-                opt.getRootFolder + "BusyboxBigConfig.config"
+                opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/BusyboxBigConfig.config"
             else if (caseStudy.equals("openssl"))
                 opt.getRootFolder + "OpenSSL.config"
             else if (caseStudy.equals("sqlite"))
@@ -238,8 +238,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
                 dimacsFM = new File(opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/extramodels/2.6.33.3-2var.dimacs")
                 featureprefix = "CONFIG_"
             } else if (caseStudy == "busybox") {
-                productsFile = new File(opt.getRootFolder + "TypeChef-BusyboxAnalysis/busybox_pairwise_configs.csv")
-                dimacsFM = new File(opt.getRootFolder + "TypeChef-BusyboxAnalysis/BB_fm.dimacs")
+                productsFile = new File(opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/busybox_pairwise_configs.csv")
+                dimacsFM = new File(opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/BB_fm.dimacs")
                 featureprefix = "CONFIG_"
             } else if (caseStudy == "openssl") {
                 productsFile = new File(opt.getRootFolder + "TypeChef-OpenSSLAnalysis/openssl-1.0.1c/openssl_pairwise_configs.csv")
