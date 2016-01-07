@@ -204,7 +204,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             else if (caseStudy.equals("busybox"))
                 opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/BusyboxBigConfig.config"
             else if (caseStudy.equals("openssl"))
-                opt.getRootFolder + "OpenSSL.config"
+                opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudyOpenSSL.config"
             else if (caseStudy.equals("sqlite"))
                 opt.getRootFolder + "SQLite.config"
             else
@@ -242,8 +242,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
                 dimacsFM = new File(opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/BB_fm.dimacs")
                 featureprefix = "CONFIG_"
             } else if (caseStudy == "openssl") {
-                productsFile = new File(opt.getRootFolder + "TypeChef-OpenSSLAnalysis/openssl-1.0.1c/openssl_pairwise_configs.csv")
-                dimacsFM = new File(opt.getRootFolder + "TypeChef-OpenSSLAnalysis/openssl-1.0.1c/openssl.dimacs")
+                productsFile = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/openssl_pairwise_configs.csv")
+                dimacsFM = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/openssl.dimacs")
             } else if (caseStudy == "sqlite") {
                 productsFile = new File(opt.getRootFolder + "cRefactor-SQLiteEvaluation/sqlite_pairwise_configs.csv")
                 dimacsFM = new File(opt.getRootFolder + "cRefactor-SQLiteEvaluation/sqlite.dimacs")
@@ -545,8 +545,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         } else if (fileAbsPath.contains("busybox-1.18.5")) {
             thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("busybox-1.18.5"))
             caseStudy = "busybox"
-        } else if (fileAbsPath.contains("openssl-1.0.1c")) {
-            thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("openssl-1.0.1c"))
+        } else if (fileAbsPath.contains("openssl")) {
+            thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("openssl"))
             caseStudy = "openssl"
         } else if (fileAbsPath.contains("SQLite")) {
             thisFilePath = fileAbsPath
