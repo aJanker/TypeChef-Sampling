@@ -82,6 +82,7 @@ object Sampling extends EnforceTreeHelper {
 
         if (ast != null) {
             FamilyBasedVsSampleBased.checkErrorsAgainstSamplingConfigs(fullFM, fullFM, ast, opt, "")
+            FamilyBasedVsSampleBased.typecheckProducts(fullFM, fullFM, ast, opt, "")
         }
     }
 
