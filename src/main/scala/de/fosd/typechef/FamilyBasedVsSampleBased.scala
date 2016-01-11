@@ -204,7 +204,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             else if (caseStudy.equals("busybox"))
                 opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/BusyboxBigConfig.config"
             else if (caseStudy.equals("openssl"))
-                opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudyOpenSSL.config"
+                opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/OpenSSL.config"
             else if (caseStudy.equals("sqlite"))
                 opt.getRootFolder + "/cRefactor-SQLiteEvaluation/SQLite.config"
             else
