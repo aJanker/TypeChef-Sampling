@@ -243,7 +243,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
                 featureprefix = "CONFIG_"
             } else if (caseStudy == "openssl") {
                 productsFile = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/openssl_pairwise_configs.csv")
-                dimacsFM = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/openssl.dimacs")
+                dimacsFM = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/OpenSSL.dimacs")
             } else if (caseStudy == "sqlite") {
                 productsFile = new File(opt.getRootFolder + "/cRefactor-SQLiteEvaluation/sqlite_pairwise_configs.csv")
                 dimacsFM = new File(opt.getRootFolder + "/cRefactor-SQLiteEvaluation/sqlite.dimacs")
