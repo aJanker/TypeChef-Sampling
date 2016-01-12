@@ -206,7 +206,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             else if (caseStudy.equals("openssl"))
                 opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/OpenSSL.config"
             else if (caseStudy.equals("sqlite"))
-                opt.getRootFolder + "/cRefactor-SQLiteEvaluation/SQLite.config"
+                opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/SQLite.config"
             else
                 throw new Exception("unknown case Study, give linux, busybox, or openssl")
             startTime = System.currentTimeMillis()
@@ -245,8 +245,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
                 productsFile = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/openssl_pairwise_configs.csv")
                 dimacsFM = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/OpenSSL.dimacs")
             } else if (caseStudy == "sqlite") {
-                productsFile = new File(opt.getRootFolder + "/cRefactor-SQLiteEvaluation/sqlite_pairwise_configs.csv")
-                dimacsFM = new File(opt.getRootFolder + "/cRefactor-SQLiteEvaluation/sqlite.dimacs")
+                productsFile = new File(opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/sqlite_pairwise_configs.csv")
+                dimacsFM = new File(opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/sqlite.dimacs")
             } else {
                     throw new Exception("unknown case Study, give linux or busybox")
             }
