@@ -207,6 +207,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
                 opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/OpenSSL.config"
             else if (caseStudy.equals("sqlite"))
                 opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/SQLite.config"
+            else if (caseStudy.equals("uclibc"))
+                opt.getRootFolder + "/farce-uclibc/uclibc.config"
             else
                 throw new Exception("unknown case Study, give linux, busybox, or openssl")
             startTime = System.currentTimeMillis()
@@ -247,6 +249,9 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             } else if (caseStudy == "sqlite") {
                 productsFile = new File(opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/sqlite_pairwise_configs.csv")
                 dimacsFM = new File(opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/sqlite.dimacs")
+            } else if (caseStudy == "uclibc") {
+                productsFile = new File(opt.getRootFolder + "/farce-uclibc/uclibc-pairwise.csv")
+                dimacsFM = new File(opt.getRootFolder + "/farce-uclibc/uclibc.dimacs")
             } else {
                     throw new Exception("unknown case Study, give linux or busybox")
             }
@@ -551,6 +556,9 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         } else if (fileAbsPath.contains("SQLite")) {
             thisFilePath = fileAbsPath
             caseStudy = "sqlite"
+        } else if (fileAbsPath.contains("uClibc")) {
+            thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("uClibc"))
+            caseStudy = "uclibc"
         } else {
             thisFilePath = opt.getFile
         }
