@@ -59,7 +59,6 @@ object Sampling extends EnforceTreeHelper {
             println("#loading AST.")
             try {
                 ast = Frontend.loadSerializedAST(opt.getSerializedTUnitFilename)
-
             } catch {
                 case e: Throwable => println(e.getMessage); ast=null
             }
@@ -67,22 +66,14 @@ object Sampling extends EnforceTreeHelper {
                 println("#... failed reading AST\n")
         } else {
             println("#... failed parsing AST\n")
-            return
-            /*new lexer.LexerFrontend().run(opt, opt.parse)
-            val in = lex(opt)
-            val parserMain = new ParserMain(new CParser(smallFM))
-            ast = parserMain.parserMain(in, opt, fullFM)
-
-            if (ast != null && opt.serializeAST) {
-                Frontend.serializeAST(ast, opt.getSerializedTUnitFilename)
-            }*/
         }
 
         ast = prepareAST[TranslationUnit](ast)
 
         if (ast != null) {
-            FamilyBasedVsSampleBased.checkErrorsAgainstSamplingConfigs(fullFM, fullFM, ast, opt, "")
-            //FamilyBasedVsSampleBased.typecheckProducts(fullFM, fullFM, ast, opt, "")
+            FamilyBasedVsSampleBased.checkErrorsAgainstProducts(fullFM, fullFM, ast, opt, "[PRODUCT] ")
+            FamilyBasedVsSampleBased.checkErrorsAgainstSamplingConfigs(fullFM, fullFM, ast, opt, "[CONFIG] ")
+            // FamilyBasedVsSampleBased.typecheckProducts(fullFM, fullFM, ast, opt, "")
         }
     }
 
