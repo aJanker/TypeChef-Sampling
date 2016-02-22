@@ -596,7 +596,6 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       val fw = gzipWriter(file)
       fw.write("[FILE]\t" + fileID + "\n")
       fw.write("[FEATURES]\t" + features.size + "\n")
-      fw.write("[DATA_FLOW_WARNINGS]\t" + allErrors.size + "\n")
 
       def caughtOnErrorsMap(warning : String,  errs : List[TypeChefError]): Unit = {
         var caughterrorsmap = Map[String, Integer]()
@@ -611,15 +610,13 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
           }
         }
 
+        fw.write("[DATA_FLOW_WARNINGS]\t" + errs.size + "\n")
         caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1 + "_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
       }
 
       caughtOnErrorsMap("SUM", allErrors)
 
       single.foreach(singleErr => caughtOnErrorsMap(singleErr._1, singleErr._2))
-
-      fw.write("####ERRORS#####\n")
-      for (e <- allErrors) fw.write(e + "\t\n\n")
 
       fw.close()
     }
