@@ -586,7 +586,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
     val outFilePrefix: String = fileID.substring(0, fileID.length - 2)
 
-    val (allErrors, _, _) = doStaticAnalysis(ast, fm, opt)
+    val (allErrors, _, _, _) = doStaticAnalysisWithSA(ast, fm, opt)
     
     val file: File = new File(opt.getErrReportFileName)
     file.getParentFile.mkdirs()
@@ -595,7 +595,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     fw.write("[FILE]\t" + fileID + "\n")
     fw.write("[FEATURES]\t" + features.size + "\n")
 
-    fw.write("[DATA_FLOW_WARINGS]\t" + allErrors.size + "\n\n")
+    fw.write("[DATA_FLOW_WARNINGS]\t" + allErrors.size + "\n\n")
 
     for (e <- allErrors) fw.write(e + "\t\n\n")
 
@@ -746,9 +746,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     }
   }
 
-
-
-  private def doStaticAnalysis(ast: TranslationUnit, fm: FeatureModel, opt: FamilyBasedVsSampleBasedOptions): (List[TypeChefError], List[(String, Long)], Map[String, List[TypeChefError]]) = {
+  private def doStaticAnalysisWithSA(ast: TranslationUnit, fm: FeatureModel, opt: FamilyBasedVsSampleBasedOptions): (List[TypeChefError], List[(String, Long)], Map[String, List[TypeChefError]], CIntraAnalysisFrontendF) = {
     val stopWatch = new StopWatch
 
     stopWatch.start("typecheck")
@@ -795,13 +793,25 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     val allWarnings = sa.errors
 
     // result (warnings, timings, singleWarnings)
-    (allWarnings, stopWatch.get, err1 ++ err2 ++ err3 ++ err4 ++ err5 ++ err6 ++ err7 ++ err8)
+    (allWarnings, stopWatch.get, err1 ++ err2 ++ err3 ++ err4 ++ err5 ++ err6 ++ err7 ++ err8, sa)
+  }
+
+  private def doStaticAnalysis(ast: TranslationUnit, fm: FeatureModel, opt: FamilyBasedVsSampleBasedOptions): (List[TypeChefError], List[(String, Long)], Map[String, List[TypeChefError]]) = {
+    val (allWarnings, stopWatch, singleWarnings, _) = doStaticAnalysisWithSA(ast, fm, opt)
+
+    // result (warnings, timings, singleWarnings)
+    (allWarnings, stopWatch, singleWarnings)
   }
 
   def analyzeTasks(tasks: List[Task], tunit: TranslationUnit, fm: FeatureModel, opt: FamilyBasedVsSampleBasedOptions,
                    fileID: String, startLog: String = "") {
     val log: String = startLog
+    val nstoms = 1000000
     println("start analysis.")
+
+
+    // measurement
+    val tb = java.lang.management.ManagementFactory.getThreadMXBean
 
     if (tasks.size > 0) println("start task - checking (" + tasks.size + " tasks)")
     // results (taskName, (NumConfigs, productDerivationTimes, errors, typecheckingTimes, dataflowTimes))
@@ -816,14 +826,14 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         current_config += 1
 
         // product derivation
-        val productDerivationStart = Instant.now
+        val productDerivationStart = tb.getCurrentThreadCpuTime
         val selectedFeatures = config.getTrueSet.map(_.feature)
         val product: TranslationUnit =
           if (taskDesc == "family") tunit
           else ProductDerivation.deriveProduct[TranslationUnit](tunit, selectedFeatures)
 
-        val productDerivationDiff = Duration.between(productDerivationStart, Instant.now)
-        productDerivationTimes ::= productDerivationDiff.toMillis
+        val productDerivationDiff = tb.getCurrentThreadCpuTime - productDerivationStart
+        productDerivationTimes ::= (productDerivationDiff / nstoms)
         println("checking configuration " + current_config + " of " + configs.size + " (" +
           fileID + " , " + taskDesc + ")" + "(" + countNumberOfASTElements(product) + ")" +
           "(" + selectedFeatures.size + ")"
@@ -834,25 +844,27 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
         // typechecking measurement
         var foundError: Boolean = false
-        var lastTime: Instant = Instant.now
+        var lastTime: Long = 0
         var curTime: Long = 0
 
-        lastTime = Instant.now
+        lastTime = tb.getCurrentThreadCpuTime
         foundError |= !ts.checkASTSilent
-        curTime = Duration.between(lastTime, Instant.now).toMillis
+        curTime = tb.getCurrentThreadCpuTime - lastTime
+        val productTime: Long = curTime / nstoms
 
-        tcProductTimes ::= curTime // append to the beginning of tcProductTimes
+        tcProductTimes ::= productTime // append to the beginning of tcProductTimes
 
         // liveness measurement
-        var lastTimeDf: Instant = Instant.now
+        var lastTimeDf: Long = 0
         var curTimeDf: Long = 0
 
-        lastTimeDf = Instant.now
+        lastTimeDf = tb.getCurrentThreadCpuTime
         val env = CASTEnv.createASTEnv(product)
         liveness(product, ts.getUseDeclMap, env)
-        curTimeDf = Duration.between(lastTimeDf, Instant.now).toMillis
+        curTimeDf = tb.getCurrentThreadCpuTime - lastTimeDf
+        val timeDataFlowProduct = curTimeDf / nstoms
 
-        dfProductTimes ::= curTimeDf // add to the head - reverse later
+        dfProductTimes ::= timeDataFlowProduct // add to the head - reverse later
 
         if (foundError) configurationsWithErrors += 1
       }
