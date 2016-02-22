@@ -1,7 +1,6 @@
 package de.fosd.typechef
 
 import java.io._
-import java.time.{Duration, Instant}
 import java.util.regex.Pattern
 import java.util.zip.GZIPOutputStream
 
@@ -586,7 +585,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
     val outFilePrefix: String = fileID.substring(0, fileID.length - 2)
 
-    val (allErrors, _, _, _) = doStaticAnalysisWithSA(ast, fm, opt)
+    val (allErrors, _, _, sa) = doStaticAnalysisWithSA(ast, fm, opt)
     
     val file: File = new File(opt.getErrReportFileName)
     file.getParentFile.mkdirs()
@@ -663,10 +662,10 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
       val results = configs.zipWithIndex.map {
         case (config, current_config) => {
-          val productDerivationStart = Instant.now
+          val productDerivationStart = System.nanoTime()
           val selectedFeatures = config.getTrueSet.map(_.feature)
           val product: TranslationUnit = ProductDerivation.deriveProduct[TranslationUnit](tunit, selectedFeatures)
-          val productDerivationTime = Duration.between(productDerivationStart, Instant.now).toMillis
+          val productDerivationTime = System.nanoTime() - productDerivationStart // no stop watch -> only for dbg purpose
 
           val run = doStaticAnalysis(product, fm, opt)
           val numberOfASTElements = countNumberOfASTElements(product)
