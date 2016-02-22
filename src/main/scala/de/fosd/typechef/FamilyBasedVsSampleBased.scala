@@ -1,6 +1,7 @@
 package de.fosd.typechef
 
 import java.io._
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import java.util.zip.GZIPOutputStream
 
@@ -589,14 +590,11 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     
     val file: File = new File(opt.getErrReportFileName)
     file.getParentFile.mkdirs()
-    val fw  = gzipWriter(file
-    )
+
+    val fw  = gzipWriter(file)
     fw.write("[FILE]\t" + fileID + "\n")
     fw.write("[FEATURES]\t" + features.size + "\n")
-
-    fw.write("[DATA_FLOW_WARNINGS]\t" + allErrors.size + "\n\n")
-
-    for (e <- allErrors) fw.write(e + "\t\n\n")
+    fw.write("[DATA_FLOW_WARNINGS]\t" + allErrors.size + "\n")
 
     var caughterrorsmap = Map[String, Integer]()
     for ((name, _) <- samplingTasksWithoutFamily) caughterrorsmap += ((name, 0))
@@ -610,9 +608,10 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       }
     }
 
-    val reslist = ("all", allErrors.size) :: caughterrorsmap.toList.sortBy(_._1)
-    fw.write(reslist.map(_._1).mkString(";") + "\n")
-    fw.write(reslist.map(_._2).mkString(";") + "\n")
+    caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("["+ res._1 + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
+
+    fw.write("####ERRORS#####")
+    for (e <- allErrors) fw.write(e + "\t\n\n")
 
     fw.close()
   }
@@ -665,7 +664,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
           val productDerivationStart = System.nanoTime()
           val selectedFeatures = config.getTrueSet.map(_.feature)
           val product: TranslationUnit = ProductDerivation.deriveProduct[TranslationUnit](tunit, selectedFeatures)
-          val productDerivationTime = System.nanoTime() - productDerivationStart // no stop watch -> only for dbg purpose
+          val productDerivationTime = TimeUnit.MILLISECONDS.convert(System.nanoTime() - productDerivationStart, TimeUnit.NANOSECONDS) // no stop watch -> only for dbg purpose
 
           val run = doStaticAnalysis(product, fm, opt)
           val numberOfASTElements = countNumberOfASTElements(product)
@@ -695,7 +694,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         }.toList
 
         timingSumresults.foreach {
-          case (analysis, time) => writer.write("[" + analysis.toUpperCase + "]\t" + time + "\n")
+          case (analysis, time) => writer.write("[" + analysis.toUpperCase + "_SAMPLING_TIMING]\t" + time + "\n")
         }
 
         results.zipWithIndex.foreach {
@@ -710,13 +709,14 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
             val (allErrs, timings, singleErrs) = run
             writer.write("[ALLERRS]\t" + allErrs.size + "\n")
-            writer.write("[TYPECHECK]\t" + timings.find { case (name, time) => name.equalsIgnoreCase("typecheck") }.getOrElse(("", 0L)._2) + "\n")
-            writer.write("[INITFRONTEND]\t" + timings.find { case (name, time) => name.equalsIgnoreCase("init") }.getOrElse(("", 0L)._2) + "\n")
+            writer.write("[TYPECHECK]\t" + timings.find { case (name, time) => name.equalsIgnoreCase("typecheck") }.getOrElse(("", 0L))._2 + "\n")
+            writer.write("[INITFRONTEND]\t" + timings.find { case (name, time) => name.equalsIgnoreCase("init") }.getOrElse(("", 0L))._2 + "\n")
 
             if (sum)
               timings.foreach {
                 case (analysis, time) if singleErrs.contains(analysis) => {
-                    writer.write("[" + analysis.toUpperCase + "_SINGLE]\t" + time + "\t" + singleErrs.get(analysis).size + "\n")
+                    writer.write("[" + analysis.toUpperCase + "_SINGLE_SAMPLING_DATA_FLOW_WARNINGS]\t" + singleErrs.get(analysis).size + "\n")
+                    writer.write("[" + analysis.toUpperCase + "_SINGLE_SAMPLING_TIMING]\t" + time + "\n")
                 }
                 case _ =>
               }

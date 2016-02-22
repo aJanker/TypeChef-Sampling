@@ -59,7 +59,7 @@ class FamilyBasedVsSampleBasedOptions extends FrontendOptionsWithConfigFiles {
     }
 
     def getErrReportFileName: String = {
-        getOutputStem + "_sample.errreport.gz"
+        getOutputStem + ".c.sample_errreport.gz"
     }
 
 }
