@@ -5,6 +5,7 @@ import java.time.{Duration, Instant}
 import java.util.regex.Pattern
 import java.util.zip.GZIPOutputStream
 
+import de.fosd.typechef.Extras.StopWatch
 import de.fosd.typechef.conditional.{Choice, One, Opt}
 import de.fosd.typechef.crewrite._
 import de.fosd.typechef.error.TypeChefError
@@ -585,44 +586,36 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
     val outFilePrefix: String = fileID.substring(0, fileID.length - 2)
 
-    val (errors, _, _) = doStaticAnalysis(ast, fm, opt)
+    val (allErrors, _, _) = doStaticAnalysis(ast, fm, opt)
     
     val file: File = new File(opt.getErrReportFileName)
     file.getParentFile.mkdirs()
-    val fw: FileWriter = new FileWriter(file)
-    fw.write("File : " + fileID + "\n")
-    fw.write("Features : " + features.size + "\n")
-    fw.write(log + "\n")
+    val fw  = gzipWriter(file
+    )
+    fw.write("[FILE]\t" + fileID + "\n")
+    fw.write("[FEATURES]\t" + features.size + "\n")
 
-    fw.write("Potential number of data-flow errors: " + errors.size + "\n\n")
+    fw.write("[DATA_FLOW_WARINGS]\t" + allErrors.size + "\n\n")
 
-    for (e <- errors) fw.write(e + "\n\n")
+    for (e <- allErrors) fw.write(e + "\t\n\n")
 
     var caughterrorsmap = Map[String, Integer]()
     for ((name, _) <- samplingTasksWithoutFamily) caughterrorsmap += ((name, 0))
 
-
     // check for each error whether the tasklist of an sampling approach contains a configuration
     // that fullfills the error condition (using evaluate)
-    for (e <- errors) {
+    for (e <- allErrors) {
       for ((name, tasklist) <- samplingTasksWithoutFamily) {
         if (tasklist.exists { x => e.condition.evaluate(x.getTrueSet.map(_.feature)) })
           caughterrorsmap += ((name, 1 + caughterrorsmap(name)))
       }
     }
 
-    val reslist = ("all", errors.size) :: caughterrorsmap.toList.sortBy(_._1)
+    val reslist = ("all", allErrors.size) :: caughterrorsmap.toList.sortBy(_._1)
     fw.write(reslist.map(_._1).mkString(";") + "\n")
     fw.write(reslist.map(_._2).mkString(";") + "\n")
 
-    val writer = new FileWriter(new File(opt.getStopWatchFilename))
-    writer.write(sw.toString)
-    writer.close()
-    println(sw)
-
     fw.close()
-
-    // TODO Clean Report Generation
   }
 
   def checkErrorsAgainstProducts(fm_scanner: FeatureModel, fm: FeatureModel, ast: TranslationUnit, opt: FamilyBasedVsSampleBasedOptions,
@@ -1637,42 +1630,4 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
   private def gzipWriter(path: String): BufferedWriter = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(path)), "UTF-8"))
 
   private def gzipWriter(file: File): BufferedWriter = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(file)), "UTF-8"))
-
-  private class StopWatch {
-    var lastStart: Instant = Instant.now
-    var currentPeriod: String = "none"
-    var currentPeriodId: Int = 0
-    var times: Map[(Int, String), Long] = Map()
-
-    private def genId(): Int = {
-      currentPeriodId += 1; currentPeriodId
-    }
-
-    def start(period: String) {
-      val now = Instant.now
-      val lastTime = Duration.between(lastStart, now).toMillis
-      times = times + ((genId(), currentPeriod) -> lastTime)
-      lastStart = Instant.now
-      currentPeriod = period
-    }
-
-    def get() = {
-      times.toList.filterNot(x => x._1._2 == "none" || x._1._2 == "done").sortBy(_._1._1).map(y => (y._1._2, y._2))
-    }
-
-    def get(period: String): Long = times.filter(v => v._1._2 == period).headOption.map(_._2).getOrElse(0)
-
-    override def toString = {
-      var res = "timing "
-      val switems = times.toList.filterNot(x => x._1._2 == "none" || x._1._2 == "done").sortBy(_._1._1)
-
-      if (switems.size > 0) {
-        res = res + "("
-        res = res + switems.map(_._1._2).reduce(_ + ", " + _)
-        res = res + ")\n"
-        res = res + switems.map(_._2.toString).reduce(_ + ";" + _)
-      }
-      res
-    }
-  }
 }

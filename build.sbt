@@ -19,7 +19,7 @@ TaskKey[File]("mkrun") <<= (baseDirectory, fullClasspath in Runtime, mainClass i
   val template = """#!/bin/sh
 java -ea -Xmx4096m -Xms128m -Xss10m -classpath "%s" %s "$@"
 """
-  val mainStr = main getOrElse error("No main class specified")
+  val mainStr = main getOrElse sys.error("No main class specified")
   val contents = template.format(cp.files.absString, mainStr)
   val out = base / "typechefsampling.sh"
   IO.write(out, contents)
