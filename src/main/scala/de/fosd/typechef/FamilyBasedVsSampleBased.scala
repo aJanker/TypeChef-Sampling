@@ -582,38 +582,41 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     val sw = new StopWatch()
     val samplingTasksWithoutFamily = samplingTasks.filterNot { x => x._1 == "family" }
 
-    println("#starting error checking.")
+    for ((task, _) <- samplingTasksWithoutFamily) {
 
-    val outFilePrefix: String = fileID.substring(0, fileID.length - 2)
+      println("#starting error checking.")
 
-    val (allErrors, _, _, sa) = doStaticAnalysisWithSA(ast, fm, opt)
-    
-    val file: File = new File(opt.getErrReportFileName)
-    file.getParentFile.mkdirs()
+      val outFilePrefix: String = fileID.substring(0, fileID.length - 2)
 
-    val fw  = gzipWriter(file)
-    fw.write("[FILE]\t" + fileID + "\n")
-    fw.write("[FEATURES]\t" + features.size + "\n")
-    fw.write("[DATA_FLOW_WARNINGS]\t" + allErrors.size + "\n")
+      val (allErrors, _, _, sa) = doStaticAnalysisWithSA(ast, fm, opt)
 
-    var caughterrorsmap = Map[String, Integer]()
-    for ((name, _) <- samplingTasksWithoutFamily) caughterrorsmap += ((name, 0))
+      val file: File = new File(opt.getFile + task + "_sample_errreport.gz")
+      file.getParentFile.mkdirs()
 
-    // check for each error whether the tasklist of an sampling approach contains a configuration
-    // that fullfills the error condition (using evaluate)
-    for (e <- allErrors) {
-      for ((name, tasklist) <- samplingTasksWithoutFamily) {
-        if (tasklist.exists { x => e.condition.evaluate(x.getTrueSet.map(_.feature)) })
-          caughterrorsmap += ((name, 1 + caughterrorsmap(name)))
+      val fw = gzipWriter(file)
+      fw.write("[FILE]\t" + fileID + "\n")
+      fw.write("[FEATURES]\t" + features.size + "\n")
+      fw.write("[DATA_FLOW_WARNINGS]\t" + allErrors.size + "\n")
+
+      var caughterrorsmap = Map[String, Integer]()
+      for ((name, _) <- samplingTasksWithoutFamily) caughterrorsmap += ((name, 0))
+
+      // check for each error whether the tasklist of an sampling approach contains a configuration
+      // that fullfills the error condition (using evaluate)
+      for (e <- allErrors) {
+        for ((name, tasklist) <- samplingTasksWithoutFamily) {
+          if (tasklist.exists { x => e.condition.evaluate(x.getTrueSet.map(_.feature)) })
+            caughterrorsmap += ((name, 1 + caughterrorsmap(name)))
+        }
       }
+
+      caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1 + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
+
+      fw.write("####ERRORS#####\n")
+      for (e <- allErrors) fw.write(e + "\t\n\n")
+
+      fw.close()
     }
-
-    caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("["+ res._1 + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
-
-    fw.write("####ERRORS#####")
-    for (e <- allErrors) fw.write(e + "\t\n\n")
-
-    fw.close()
   }
 
   def checkErrorsAgainstProducts(fm_scanner: FeatureModel, fm: FeatureModel, ast: TranslationUnit, opt: FamilyBasedVsSampleBasedOptions,
