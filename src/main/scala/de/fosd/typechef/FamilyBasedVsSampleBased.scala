@@ -590,7 +590,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
       val (allErrors, _, _, sa) = doStaticAnalysisWithSA(ast, fm, opt)
 
-      val file: File = new File(opt.getFile + task + "_sample_errreport.gz")
+      val file: File = new File(opt.getFile + "." + task.toUpperCase + "_sample_errreport.gz")
       file.getParentFile.mkdirs()
 
       val fw = gzipWriter(file)
