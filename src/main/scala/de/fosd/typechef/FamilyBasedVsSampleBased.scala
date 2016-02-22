@@ -588,7 +588,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
       val outFilePrefix: String = fileID.substring(0, fileID.length - 2)
 
-      val (allErrors, _, single, sa) = doStaticAnalysisWithSA(ast, fm, opt)
+      val (allErrors, _, singleWarnings, sa) = doStaticAnalysisWithSA(ast, fm, opt)
 
       val file: File = new File(opt.getFile + "." + task + "_sample_errreport.gz")
       file.getParentFile.mkdirs()
@@ -610,13 +610,13 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
           }
         }
 
-        fw.write("[DATA_FLOW_WARNINGS]\t" + errs.size + "\n")
+        fw.write("[VAA_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]" + errs.size + "\n")
         caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1 + "_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
       }
 
       caughtOnErrorsMap("SUM", allErrors)
 
-      single.foreach(singleErr => caughtOnErrorsMap(singleErr._1, singleErr._2))
+      singleWarnings.foreach(singleWarning => caughtOnErrorsMap(singleWarning._1, singleWarning._2))
 
       fw.close()
     }
