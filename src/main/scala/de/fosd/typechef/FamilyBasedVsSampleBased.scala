@@ -599,16 +599,19 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
       def caughtOnErrorsMap(warning : String,  errs : List[TypeChefError]): Unit = {
         var caughterrorsmap = Map[String, Integer]()
-        for ((name, _) <- samplingTasksWithoutFamily) caughterrorsmap += ((name, 0))
+        var samplingErrsMap = Map[String, List[TypeChefError]]()
+        for ((name, _) <- samplingTasksWithoutFamily) {
+          caughterrorsmap += ((name, 0))
+          samplingErrsMap += ((name, List()))
+        }
 
         // check for each error whether the tasklist of an sampling approach contains a configuration
         // that fullfills the error condition (using evaluate)
-        var samplingErrs : List[TypeChefError] = List()
         for (e <- errs) {
           for ((name, tasklist) <- samplingTasksWithoutFamily) {
             if (tasklist.exists { x => e.condition.evaluate(x.getTrueSet.map(_.feature)) }) {
                   caughterrorsmap += ((name, 1 + caughterrorsmap(name)))
-                  samplingErrs ::= e
+                  samplingErrsMap += ((name, e :: samplingErrsMap(name)))
                 }
           }
         }
@@ -616,11 +619,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         fw.write("[VAA_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + errs.size + "\n")
         fw.write("[VAA_" + warning.toUpperCase + "_DEGREES]\t" + sa.getErrorDegrees(errs, opt.getSimplifyFM)._2.mkString("; ") + "\n")
 
-        caughterrorsmap.toList.sortBy(_._1).foreach(res => {
-          fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n")
-          fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DEGREES]\t" + sa.getErrorDegrees(samplingErrs, opt.getSimplifyFM)._2.mkString("; ") + "\n")
-        })
-
+        caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
+        samplingErrsMap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DEGREES]\t" + sa.getErrorDegrees(samplingErrsMap(res._1), opt.getSimplifyFM)._2.mkString("; ") + "\n"))
       }
 
       caughtOnErrorsMap("SUM", allErrors)
