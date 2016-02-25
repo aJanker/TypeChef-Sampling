@@ -618,6 +618,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
         fw.write("[VAA_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + errs.size + "\n")
         fw.write("[VAA_" + warning.toUpperCase + "_DEGREES]\t" + sa.getErrorDegrees(errs, opt.getSimplifyFM)._2.mkString("; ") + "\n")
+        fw.write("[VAA_" + warning.toUpperCase + "_ERRS]\t" + errs + "\n")
 
         caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
         samplingErrsMap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DEGREES]\t" + sa.getErrorDegrees(samplingErrsMap(res._1), opt.getSimplifyFM)._2.mkString("; ") + "\n"))
@@ -691,7 +692,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       }
 
       writeResult(fileID, task, results, true)
-      // writeResult(fileID, task, results, false)
+      writeResult(fileID, task, results, false)
     })
 
     def writeResult(fileID: String, task: (String, List[SimpleConfiguration]), results: List[(String, (Int, Long, Long, TranslationUnit), (List[TypeChefError], List[(String, Long)], Map[String, List[TypeChefError]]))], sum: Boolean = true): Unit = {
