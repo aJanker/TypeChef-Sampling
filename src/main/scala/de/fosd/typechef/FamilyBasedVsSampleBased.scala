@@ -618,7 +618,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
         fw.write("[VAA_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + errs.size + "\n")
         fw.write("[VAA_" + warning.toUpperCase + "_DEGREES]\t" + sa.getErrorDegrees(errs, opt.getSimplifyFM)._2.mkString("; ") + "\n")
-        fw.write("[VAA_" + warning.toUpperCase + "_ERRS]\t" + errs + "\n")
+        errs.foreach(err => fw.write("[VAA_" + warning.toUpperCase + "_ERR]\t" + err + "\n"))
+
 
         caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
         samplingErrsMap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DEGREES]\t" + sa.getErrorDegrees(samplingErrsMap(res._1), opt.getSimplifyFM)._2.mkString("; ") + "\n"))
