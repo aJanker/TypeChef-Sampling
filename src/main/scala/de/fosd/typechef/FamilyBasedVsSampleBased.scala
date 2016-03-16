@@ -1,6 +1,7 @@
 package de.fosd.typechef
 
 import java.io._
+import java.util
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import java.util.zip.GZIPOutputStream
@@ -10,12 +11,13 @@ import de.fosd.typechef.conditional.{Choice, One, Opt}
 import de.fosd.typechef.crewrite._
 import de.fosd.typechef.error.TypeChefError
 import de.fosd.typechef.featureexpr._
-import de.fosd.typechef.featureexpr.bdd.{BDDFeatureModel, SatSolver}
+import de.fosd.typechef.featureexpr.bdd.{BDDFeatureExpr, BDDFeatureModel, SatSolver}
 import de.fosd.typechef.featureexpr.sat.{SATFeatureExprFactory, SATFeatureModel}
 import de.fosd.typechef.parser.c._
 import de.fosd.typechef.typesystem._
 
 import scala.Predef._
+import scala.collection.JavaConversions._
 import scala.collection.immutable.HashMap
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
@@ -549,24 +551,18 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     var thisFilePath: String = ""
     val fileAbsPath = new File(new File(".").getAbsolutePath, opt.getFile).toString
     if (fileAbsPath.contains("linux26333")) {
-      thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("linux26333"))
       caseStudy = "linux"
     } else if (fileAbsPath.contains("busybox-1.18.5")) {
-      thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("busybox-1.18.5"))
       caseStudy = "busybox"
     } else if (fileAbsPath.contains("openssl")) {
-      thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("openssl"))
       caseStudy = "openssl"
     } else if (fileAbsPath.contains("SQLite")) {
-      thisFilePath = fileAbsPath
       caseStudy = "sqlite"
     } else if (fileAbsPath.contains("uClibc")) {
-      thisFilePath = fileAbsPath.substring(fileAbsPath.lastIndexOf("uClibc"))
       caseStudy = "uclibc"
-    } else {
-      thisFilePath = opt.getFile
     }
 
+    thisFilePath = fileAbsPath
     val configSerializationDir = new File(thisFilePath.substring(0, thisFilePath.length - 2))
 
     val (configGenLog: String, typecheckingTasks: List[Task]) =
@@ -594,15 +590,17 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       file.getParentFile.mkdirs()
 
       val fw = gzipWriter(file)
-      fw.write("[FILE]\t" + fileID + "\n")
+      fw.write("[FILE]\t" + opt.getFile + "\n")
       fw.write("[FEATURES]\t" + features.size + "\n")
 
       def caughtOnErrorsMap(warning : String,  errs : List[TypeChefError]): Unit = {
         var caughterrorsmap = Map[String, Integer]()
         var samplingErrsMap = Map[String, List[TypeChefError]]()
+        var uncaughtsamplingErrsMap = Map[String, List[TypeChefError]]()
         for ((name, _) <- samplingTasksWithoutFamily) {
           caughterrorsmap += ((name, 0))
           samplingErrsMap += ((name, List()))
+          uncaughtsamplingErrsMap += ((name, List()))
         }
 
         // check for each error whether the tasklist of an sampling approach contains a configuration
@@ -613,6 +611,9 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
                   caughterrorsmap += ((name, 1 + caughterrorsmap(name)))
                   samplingErrsMap += ((name, e :: samplingErrsMap(name)))
                 }
+            else {
+              uncaughtsamplingErrsMap += ((name, e :: uncaughtsamplingErrsMap(name)))
+            }
           }
         }
 
@@ -623,6 +624,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
         caughterrorsmap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DATA_FLOW_WARNINGS]\t" + res._2 + "\n"))
         samplingErrsMap.toList.sortBy(_._1).foreach(res => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_DEGREES]\t" + sa.getErrorDegrees(samplingErrsMap(res._1), opt.getSimplifyFM)._2.mkString("; ") + "\n"))
+        uncaughtsamplingErrsMap.toList.sortBy(_._1).foreach(res => res._2.foreach(err => fw.write("[" + res._1.toUpperCase + "_" + warning.toUpperCase + "_UNCAUGHT]\t" + err + "\t" + calculateInteractionDegree(err.condition.asInstanceOf[BDDFeatureExpr], (x => x)) + "\n")))
       }
 
       caughtOnErrorsMap("SUM", allErrors)
@@ -692,8 +694,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         }
       }
 
-      writeResult(fileID, task, results, true)
-      writeResult(fileID, task, results, false)
+      writeResult(opt.getFile, task, results, true)
+      writeResult(opt.getFile, task, results, false)
     })
 
     def writeResult(fileID: String, task: (String, List[SimpleConfiguration]), results: List[(String, (Int, Long, Long, TranslationUnit), (List[TypeChefError], List[(String, Long)], Map[String, List[TypeChefError]]))], sum: Boolean = true): Unit = {
@@ -1658,4 +1660,18 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
   private def gzipWriter(path: String): BufferedWriter = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(path)), "UTF-8"))
 
   private def gzipWriter(file: File): BufferedWriter = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(file)), "UTF-8"))
+
+  def calculateInteractionDegree(fExpr: BDDFeatureExpr, simplify: BDDFeatureExpr => BDDFeatureExpr): Int = {
+    //interaction degree is the smallest number of variables that need to be set to reproduce the problem
+    //we use the shortest path in a BDD as simple way of computing this
+
+    //this does not always return the optimal solution, because variable ordering matters!
+    //for example (fa and fb) or (fa andNot fb and fc) or (fa.not and fb) will produce a result 2 instead of 1
+    val simpleFexpr = simplify(fExpr)
+    val allsat = simpleFexpr.leak().allsat().asInstanceOf[util.LinkedList[Array[Byte]]]
+
+    if (allsat.isEmpty) 0
+    else allsat.map(_.count(_ >= 0)).min
+  }
+
 }
