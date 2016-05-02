@@ -7,7 +7,7 @@ organization := "de.fosd.typechef"
 
 scalaVersion := "2.11.4"
 
-libraryDependencies += "de.fosd.typechef" % "frontend_2.11" % "0.4.0"
+libraryDependencies += "de.fosd.typechef" % "frontend_2.11" % "0.4.1"
 
 libraryDependencies += "gnu.getopt" % "java-getopt" % "1.0.13"
 
