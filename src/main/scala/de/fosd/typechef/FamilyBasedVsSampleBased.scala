@@ -219,7 +219,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         throw new Exception("unknown case Study, give linux, busybox, or openssl")
       startTime = System.currentTimeMillis()
       val (configs, logmsg) = getConfigsFromFiles(features, fm, new File(configFile))
-      tasks :+= Pair("fileconfig", configs)
+      tasks :+= ("fileconfig", configs)
       msg = "Time for config generation (singleconf): " + (System.currentTimeMillis() - startTime) + " ms\n" + logmsg
     }
     println(msg)
@@ -265,7 +265,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
       val (configs, logmsg) = loadConfigurationsFromCSVFile(productsFile, dimacsFM, features, fm, featureprefix)
 
-      tasks :+= Pair("pairwise", configs)
+      tasks :+= ("pairwise", configs)
       msg = "Time for config generation (pairwise): " + (System.currentTimeMillis() - startTime) + " ms\n" + logmsg
     }
     println(msg)
@@ -285,7 +285,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       startTime = System.currentTimeMillis()
       val (configs, logmsg) = configurationCoverage(tunit, fm, features, List(),
         preferDisabledFeatures = false, includeVariabilityFromHeaderFiles = false)
-      tasks :+= Pair("coverage_noHeader", configs)
+      tasks :+= ("coverage_noHeader", configs)
       msg = "Time for config generation (coverage_noHeader): " + (System.currentTimeMillis() - startTime) + " ms\n" + logmsg
     }
     println(msg)
@@ -307,7 +307,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         startTime = System.currentTimeMillis()
         val (configs, logmsg) = configurationCoverage(tunit, fm, features, List(),
           preferDisabledFeatures = false, includeVariabilityFromHeaderFiles = true)
-        tasks :+= Pair("coverage", configs)
+        tasks :+= ("coverage", configs)
         msg = "Time for config generation (coverage): " + (System.currentTimeMillis() - startTime) + " ms\n" + logmsg
       }
       println(msg)
@@ -358,6 +358,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     /** code coverage - no Header files */
     if (opt.codecoverageNH) {
       val (clog, ctasks) = buildConfigurationsCodecoverageNH(tunit, fm, configdir, caseStudy, tasks)
+
       log = log + clog
       tasks ++= ctasks
     } else {
@@ -384,7 +385,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
     /** family */
     if (opt.family) {
-      val (flog, ftasks) = ("", List(Pair("family", List(new SimpleConfiguration(List(), List())))))
+      val (flog, ftasks) = ("", List(("family", List(new SimpleConfiguration(List(), List())))))
       log = log + flog
       tasks ++= ftasks
     } else {
@@ -562,7 +563,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       caseStudy = "uclibc"
     }
 
-    thisFilePath = fileAbsPath
+    thisFilePath = opt.getFile
     val configSerializationDir = new File(thisFilePath.substring(0, thisFilePath.length - 2))
 
     val (configGenLog: String, typecheckingTasks: List[Task]) =
@@ -1058,7 +1059,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       pwConfigs ::= prevConfig
     //for (f1 <- features)
     //    if (!configListContainsFeaturesAsEnabled(pwConfigs ++ existingConfigs, Set(f1)))
-    //        println("results do not contain " + f1.feature)
+    //        println("results do not contain " + f1.condition)
     (pwConfigs,
       " unsatisfiableCombinations:" + unsatCombinations + "\n" +
         " already covered combinations:" + alreadyCoveredCombinations + "\n" +
@@ -1197,15 +1198,15 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     def collectAnnotationLeafNodes(root: Any, previousFeatureExprs: List[FeatureExpr] = List(FeatureExprFactory.True), previousFile: String = null) {
       root match {
         case x: Opt[_] => {
-          if (x.feature.equals(previousFeatureExprs.head)) {
+          if (x.condition.equals(previousFeatureExprs.head)) {
             collectAnnotationLeafNodes(x.entry, previousFeatureExprs, previousFile)
           } else {
-            collectAnnotationLeafNodes(x.entry, previousFeatureExprs.::(x.feature), previousFile)
+            collectAnnotationLeafNodes(x.entry, previousFeatureExprs.::(x.condition), previousFile)
           }
         }
         case x: Choice[_] => {
-          collectAnnotationLeafNodes(x.thenBranch, previousFeatureExprs.::(x.feature), previousFile)
-          collectAnnotationLeafNodes(x.elseBranch, previousFeatureExprs.::(x.feature.not()), previousFile)
+          collectAnnotationLeafNodes(x.thenBranch, previousFeatureExprs.::(x.condition), previousFile)
+          collectAnnotationLeafNodes(x.elseBranch, previousFeatureExprs.::(x.condition.not()), previousFile)
         }
         case l: List[_] =>
           for (x <- l) {
@@ -1216,7 +1217,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
           if (x.productArity == 0) {
             // termination point of recursion
             if (includeVariabilityFromHeaderFiles ||
-              (newPreviousFile == null || newPreviousFile.endsWith(".c"))) {
+              (newPreviousFile != null && newPreviousFile.endsWith(".c"))) {
               if (!nodeExpressions.contains(previousFeatureExprs)) {
                 nodeExpressions += previousFeatureExprs
               }
@@ -1237,7 +1238,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         case o => {
           // termination point of recursion
           if (includeVariabilityFromHeaderFiles ||
-            (previousFile == null || previousFile.endsWith(".c"))) {
+            (previousFile != null && previousFile.endsWith(".c"))) {
             if (!nodeExpressions.contains(previousFeatureExprs)) {
               nodeExpressions += previousFeatureExprs
             }
@@ -1340,6 +1341,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
             features += feature
       features
     }
+
     (retList,
       " unsatisfiableCombinations:" + unsatCombinations + "\n" +
         " already covered combinations:" + alreadyCoveredCombinations + "\n" +
@@ -1574,8 +1576,8 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
 
   private def getAllFeaturesRec(root: Any): Set[SingleFeatureExpr] = {
     root match {
-      case x: Opt[_] => x.feature.collectDistinctFeatureObjects.toSet ++ getAllFeaturesRec(x.entry)
-      case x: Choice[_] => x.feature.collectDistinctFeatureObjects.toSet ++ getAllFeaturesRec(x.thenBranch) ++ getAllFeaturesRec(x.elseBranch)
+      case x: Opt[_] => x.condition.collectDistinctFeatureObjects.toSet ++ getAllFeaturesRec(x.entry)
+      case x: Choice[_] => x.condition.collectDistinctFeatureObjects.toSet ++ getAllFeaturesRec(x.thenBranch) ++ getAllFeaturesRec(x.elseBranch)
       case l: List[_] => {
         var ret: Set[SingleFeatureExpr] = Set()
         for (x <- l) {
@@ -1673,5 +1675,4 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     if (allsat.isEmpty) 0
     else allsat.map(_.count(_ >= 0)).min
   }
-
 }
