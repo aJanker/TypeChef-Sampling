@@ -1367,7 +1367,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       totalFeatures += 1
       var matcher = enabledPattern.matcher(line)
       if (matcher.matches()) {
-        val name = "CONFIG_" + matcher.group(1)
+        val name = matcher.group(1)
         val feature = FeatureExprFactory.createDefinedExternal(name)
         var fileExTmp = fileEx.and(feature)
         if (correctFeatureModelIncompatibility) {
@@ -1389,7 +1389,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       } else {
         matcher = disabledPattern.matcher(line)
         if (matcher.matches()) {
-          val name = "CONFIG_" + matcher.group(1)
+          val name = matcher.group(1)
           val feature = FeatureExprFactory.createDefinedExternal(name)
           var fileExTmp = fileEx.andNot(feature)
           if (correctFeatureModelIncompatibility) {
