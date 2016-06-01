@@ -6,16 +6,6 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import java.util.zip.GZIPOutputStream
 
-import de.fosd.typechef.Extras.StopWatch
-import de.fosd.typechef.conditional.{Choice, One, Opt}
-import de.fosd.typechef.crewrite._
-import de.fosd.typechef.error.TypeChefError
-import de.fosd.typechef.featureexpr._
-import de.fosd.typechef.featureexpr.bdd.{BDDFeatureExpr, BDDFeatureModel, SatSolver}
-import de.fosd.typechef.featureexpr.sat.{SATFeatureExprFactory, SATFeatureModel}
-import de.fosd.typechef.parser.c._
-import de.fosd.typechef.typesystem._
-
 import scala.Predef._
 import scala.collection.JavaConversions._
 import scala.collection.immutable.HashMap
@@ -206,17 +196,17 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       msg = "omitting fileconfig generation, because a serialized version was loaded"
     } else {
       val configFile = if (caseStudy.equals("linux"))
-        opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/allyes.config"
+        opt.getRootFolder + "/TypeChef-Sampling-Linux/linux26333/allyes.config"
       else if (caseStudy.equals("busybox"))
-        opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/BusyboxBigConfig.config"
+        opt.getRootFolder + "/TypeChef-Sampling-BusyBox/casestudy/BusyboxBigConfig.config"
       else if (caseStudy.equals("openssl"))
-        opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/OpenSSL.config"
+        opt.getRootFolder + "/TypeChef-Sampling-OpenSSL/casestudy/OpenSSL.config"
       else if (caseStudy.equals("sqlite"))
-        opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/SQLite.config"
+        opt.getRootFolder + "/TypeChef-Sampling-SQLite/SQLite.config"
       else if (caseStudy.equals("uclibc"))
         opt.getRootFolder + "/farce-uclibc/uclibc.config"
       else
-        throw new Exception("unknown case Study, give linux, busybox, or openssl")
+        ""
       startTime = System.currentTimeMillis()
       val (configs, logmsg) = getConfigsFromFiles(features, fm, new File(configFile))
       tasks :+= ("fileconfig", configs)
@@ -242,24 +232,26 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       var dimacsFM: File = null
       var featureprefix = ""
       if (caseStudy == "linux") {
-        productsFile = new File(opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/linux_pairwise_configs.csv")
-        dimacsFM = new File(opt.getRootFolder + "/TypeChef-LinuxAnalysis/linux26333/extramodels/2.6.33.3-2var.dimacs")
+        productsFile = new File(opt.getRootFolder + "/TypeChef-Sampling-Linux/linux26333/linux_pairwise_configs.csv")
+        dimacsFM = new File(opt.getRootFolder + "/TypeChef-Sampling-Linux/linux26333/extramodels/2.6.33.3-2var.dimacs")
         featureprefix = "CONFIG_"
       } else if (caseStudy == "busybox") {
-        productsFile = new File(opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/busybox_pairwise_configs.csv")
-        dimacsFM = new File(opt.getRootFolder + "/Morpheus-BusyBoxEvaluation/casestudy/BB_fm.dimacs")
+        productsFile = new File(opt.getRootFolder + "/TypeChef-Sampling-BusyBox/casestudy/busybox_pairwise_configs.csv")
+        dimacsFM = new File(opt.getRootFolder + "/TypeChef-Sampling-BusyBox/casestudy/BB_fm.dimacs")
         featureprefix = "CONFIG_"
       } else if (caseStudy == "openssl") {
-        productsFile = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/openssl_pairwise_configs.csv")
-        dimacsFM = new File(opt.getRootFolder + "/Morpheus-OpenSSLEvaluation/casestudy/OpenSSL.dimacs")
+        productsFile = new File(opt.getRootFolder + "/TypeChef-Sampling-OpenSSL/casestudy/openssl_pairwise_configs.csv")
+        dimacsFM = new File(opt.getRootFolder + "/TypeChef-Sampling-OpenSSL/casestudy/OpenSSL.dimacs")
       } else if (caseStudy == "sqlite") {
-        productsFile = new File(opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/sqlite_pairwise_configs.csv")
-        dimacsFM = new File(opt.getRootFolder + "/cRefactor-SQLiteTH3Evaluation/sqlite.dimacs")
+        productsFile = new File(opt.getRootFolder + "/TypeChef-Sampling-SQLite/sqlite_pairwise_configs.csv")
+        dimacsFM = new File(opt.getRootFolder + "/TypeChef-Sampling-SQLite/sqlite.dimacs")
       } else if (caseStudy == "uclibc") {
         productsFile = new File(opt.getRootFolder + "/farce-uclibc/uclibc-pairwise.csv")
         dimacsFM = new File(opt.getRootFolder + "/farce-uclibc/uclibc.dimacs")
       } else {
-        throw new Exception("unknown case Study, give linux or busybox")
+        featureprefix = "CONFIG_"
+        productsFile = new File(opt.getRootFolder + "/Users/andi/Dropbox/FOSD/tmp/casestudy/busybox_pairwise_configs.csv")
+        dimacsFM = new File(opt.getRootFolder + "/Users/andi/Dropbox/FOSD/tmp/casestudy/BB_fm.dimacs")
       }
       startTime = System.currentTimeMillis()
 
