@@ -6,6 +6,16 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import java.util.zip.GZIPOutputStream
 
+import de.fosd.typechef.Extras.StopWatch
+import de.fosd.typechef.conditional.{Choice, One, Opt}
+import de.fosd.typechef.crewrite._
+import de.fosd.typechef.error.TypeChefError
+import de.fosd.typechef.featureexpr._
+import de.fosd.typechef.featureexpr.bdd.{BDDFeatureExpr, BDDFeatureModel, SatSolver}
+import de.fosd.typechef.featureexpr.sat.{SATFeatureExprFactory, SATFeatureModel}
+import de.fosd.typechef.parser.c._
+import de.fosd.typechef.typesystem._
+
 import scala.Predef._
 import scala.collection.JavaConversions._
 import scala.collection.immutable.HashMap
