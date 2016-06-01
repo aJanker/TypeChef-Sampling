@@ -214,9 +214,9 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
       else if (caseStudy.equals("sqlite"))
         opt.getRootFolder + "/TypeChef-Sampling-SQLite/SQLite.config"
       else if (caseStudy.equals("uclibc"))
-        opt.getRootFolder + "/farce-uclibc/uclibc.config"
+        opt.getRootFolder + "/TypeChef-Sampling-uclibc/study/farce-uclibc/uclibc.config"
       else
-        ""
+        throw new IllegalArgumentException("No valid case study.")
       startTime = System.currentTimeMillis()
       val (configs, logmsg) = getConfigsFromFiles(features, fm, new File(configFile))
       tasks :+= ("fileconfig", configs)
@@ -256,12 +256,11 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         productsFile = new File(opt.getRootFolder + "/TypeChef-Sampling-SQLite/sqlite_pairwise_configs.csv")
         dimacsFM = new File(opt.getRootFolder + "/TypeChef-Sampling-SQLite/sqlite.dimacs")
       } else if (caseStudy == "uclibc") {
-        productsFile = new File(opt.getRootFolder + "/farce-uclibc/uclibc-pairwise.csv")
-        dimacsFM = new File(opt.getRootFolder + "/farce-uclibc/uclibc.dimacs")
+        productsFile = new File(opt.getRootFolder + "/TypeChef-Sampling-uclibc/study/farce-uclibc/uclibc-pairwise.csv")
+        dimacsFM = new File(opt.getRootFolder + "/TypeChef-Sampling-uclibc/study/farce-uclibc/uclibc.dimacs")
       } else {
         featureprefix = "CONFIG_"
-        productsFile = new File(opt.getRootFolder + "/Users/andi/Dropbox/FOSD/tmp/casestudy/busybox_pairwise_configs.csv")
-        dimacsFM = new File(opt.getRootFolder + "/Users/andi/Dropbox/FOSD/tmp/casestudy/BB_fm.dimacs")
+        throw new IllegalArgumentException("No valid case study.")
       }
       startTime = System.currentTimeMillis()
 
