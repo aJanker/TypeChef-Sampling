@@ -189,6 +189,47 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
     taskList.toList
   }
 
+  def loadSerializedTasks_flo(mainDir: File): List[Task] = {
+    def readObject[T](file: File): T = {
+      try {
+        val fileIn: FileInputStream = new FileInputStream(file)
+        val in: ObjectInputStream = new ObjectInputStream(fileIn)
+        val e: T = in.readObject().asInstanceOf[T]
+        in.close()
+        fileIn.close()
+        e
+      } catch {
+        case i: IOException => {
+          // do not handle
+          throw i
+        }
+      }
+    }
+    def toJavaList[T](orig: List[T]): java.util.ArrayList[T] = {
+      val javaList: java.util.ArrayList[T] = new java.util.ArrayList[T]
+      for (f <- orig) javaList.add(f)
+      javaList
+    }
+    var taskList: ListBuffer[Task] = ListBuffer()
+    // it seems that the scala lists cannot be serialized, so i use java ArrayLists
+    val savedFeatures: java.util.ArrayList[String] = readObject[java.util.ArrayList[String]](new File(mainDir, "featurehashmap.ser"))
+    //assert(savedFeatures.equals(toJavaList(featureList.map(_.feature))))
+    for (file <- mainDir.listFiles()) {
+      val fn = file.getName
+      if (!fn.equals("featurehashmap.ser") && fn.endsWith(".ser")) {
+        val configs = readObject[java.util.ArrayList[SimpleConfiguration]](file)
+        val taskName = fn.substring(0, fn.length - ".ser".length)
+        var taskConfigs: scala.collection.mutable.ListBuffer[SimpleConfiguration] = ListBuffer()
+        val iter = configs.iterator()
+        while (iter.hasNext) {
+          taskConfigs += iter.next()
+        }
+        taskList.+=((taskName, taskConfigs.toList))
+      }
+    }
+    taskList.toList
+  }
+
   def initializeFeatureList(family_ast: AST) {
     features = getAllFeatures(family_ast)
     featureIDHashmap = new HashMap[SingleFeatureExpr, Int]().++(features.zipWithIndex)
@@ -868,7 +909,7 @@ object FamilyBasedVsSampleBased extends EnforceTreeHelper with ASTNavigation wit
         var curTime: Long = 0
 
         lastTime = tb.getCurrentThreadCpuTime
-        foundError |= !ts.checkASTSilent
+        foundError = !ts.checkASTSilent
         curTime = tb.getCurrentThreadCpuTime - lastTime
         val productTime: Long = curTime / nstoms
 

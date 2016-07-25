@@ -1,7 +1,11 @@
 package de.fosd.typechef
 
-import java.io.File
+import java.io.{File, FileInputStream, ObjectInputStream, ObjectStreamClass}
+import java.util
 
+import scala.collection.JavaConverters._
+import de.fosd.typechef.FamilyBasedVsSampleBased.SimpleConfiguration
+import de.fosd.typechef.featureexpr.{FeatureExprFactory, SingleFeatureExpr}
 import de.fosd.typechef.options.OptionException
 import de.fosd.typechef.parser.TokenReader
 import de.fosd.typechef.parser.c.{CTypeContext, TranslationUnit, _}
@@ -33,6 +37,9 @@ object Sampling extends EnforceTreeHelper {
 
         catch {
             case o: OptionException =>
+                println("I ain't serializing shit:")
+                val result = FamilyBasedVsSampleBased.loadSerializedTasks_flo(new File(".")).head._2
+                println(result.head)
                 println("Invocation error: " + o.getMessage)
                 println("use parameter --help for more information.")
                 return
