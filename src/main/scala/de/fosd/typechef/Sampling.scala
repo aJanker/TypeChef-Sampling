@@ -37,7 +37,8 @@ object Sampling extends EnforceTreeHelper {
 
         catch {
             case o: OptionException =>
-                println("I ain't serializing shit:")
+                val ast = Frontend.loadSerializedAST("sqlite3.tunit")
+                FamilyBasedVsSampleBased.initializeFeatureList(ast)
                 val result = FamilyBasedVsSampleBased.loadSerializedTasks_flo(new File(".")).head._2
                 println(result.head)
                 println("Invocation error: " + o.getMessage)
